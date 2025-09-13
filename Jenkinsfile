@@ -1,71 +1,59 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
-        IMAGE_NAME = "sunil8179/bookmyshow"
-        SONARQUBE_SERVER = "SonarQube"
+  environment {
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+  }
+
+  stages {
+    stage('Clean Workspace') {
+      steps {
+        cleanWs()
+      }
     }
 
-    stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
-
-        stage('Checkout Code from GitHub') {
-            steps {
-                git branch: 'feature/devops-pipeline',
-                    url: 'https://github.com/gsunil81/Book-My-Show.git'
-            }
-        }
-
-        stage('Install Dependencies (NPM)') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv("${SONARQUBE_SERVER}") {
-                    sh 'mvn sonar:sonar'
-                }
-            }
-        }
-
-        stage('Docker Build & Push to DockerHub') {
-            steps {
-                script {
-                    docker.withRegistry('', DOCKERHUB_CREDENTIALS) {
-                        def app = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
-                        app.push()
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Docker Container') {
-            steps {
-                sh '''
-                docker rm -f bookmyshow || true
-                docker run -d --name bookmyshow -p 3000:3000 sunil8179/bookmyshow:${BUILD_NUMBER}
-                '''
-            }
-        }
+    stage('Checkout Code from GitHub') {
+      steps {
+        git branch: 'feature/devops-pipeline',
+            credentialsId: 'git-creds',
+            url: 'https://github.com/gsunil81/Book-My-Show.git'
+      }
     }
 
-    post {
-        success {
-            mail to: 'galisunilkumar81@gmail.com',
-                 subject: "✅ Jenkins Build #${BUILD_NUMBER} Success",
-                 body: "The BookMyShow pipeline completed successfully.\nCheck Jenkins for full logs."
-        }
-        failure {
-            mail to: 'galisunilkumar81@gmail.com',
-                 subject: "❌ Jenkins Build #${BUILD_NUMBER} Failed",
-                 body: "The pipeline failed. Please check Jenkins logs and fix the errors."
-        }
+    stage('Install Dependencies (NPM)') {
+      steps {
+        sh 'npm install'
+      }
     }
+
+    stage('SonarQube Analysis') {
+      steps {
+        // Replace with your actual SonarQube scanner command
+        sh 'sonar-scanner'
+      }
+    }
+
+    stage('Docker Build & Push to DockerHub') {
+      steps {
+        sh '''
+          docker build -t yourdockerhubusername/bookmyshow-app .
+          echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+          docker push yourdockerhubusername/bookmyshow-app
+        '''
+      }
+    }
+
+    stage('Deploy to Docker Container') {
+      steps {
+        sh 'docker run -d -p 3000:3000 yourdockerhubusername/bookmyshow-app'
+      }
+    }
+  }
+
+  post {
+    failure {
+      echo 'Pipeline failed.'
+      // Optional: remove mail step if SMTP isn't configured
+    }
+  }
 }
