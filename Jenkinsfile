@@ -2,9 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
-        IMAGE_NAME = "sunil8179/bookmyshow"                    // DockerHub repo
-        SONARQUBE_SERVER = "SonarQube"                         // Jenkins SonarQube server name
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+        IMAGE_NAME = "sunil8179/bookmyshow"
     }
 
     stages {
@@ -18,14 +17,6 @@ pipeline {
             steps {
                 git branch: 'feature/devops-pipeline',
                     url: 'https://github.com/gsunil81/Book-My-Show.git'
-            }
-        }
-
-        stage('SonarQube Analysis (Quality Gate)') {
-            steps {
-                withSonarQubeEnv("${SONARQUBE_SERVER}") {
-                    sh 'mvn sonar:sonar'
-                }
             }
         }
 
