@@ -28,7 +28,6 @@ pipeline {
 
     stage('SonarQube Analysis') {
       steps {
-        // Replace with your actual SonarQube scanner command
         sh 'sonar-scanner'
       }
     }
@@ -53,7 +52,6 @@ pipeline {
   post {
     failure {
       echo 'Pipeline failed.'
-      // Optional: remove mail step if SMTP isn't configured
     }
   }
 }
