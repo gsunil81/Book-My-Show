@@ -23,10 +23,15 @@ pipeline {
 
     stage('SonarQube Analysis') {
       steps {
-        script {
-          def scannerHome = tool 'sonarqube'  // ✅ matches your configured scanner tool
-          withSonarQubeEnv('sonarqube') {
-            sh "${scannerHome}/bin/sonar-scanner"
+        withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_TOKEN')]) {
+          script {
+            def scannerHome = tool 'sonarqube'
+            withSonarQubeEnv('sonarqube') {
+              sh """
+                export SONAR_TOKEN=${SONAR_TOKEN}
+                ${scannerHome}/bin/sonar-scanner
+              """
+            }
           }
         }
       }
