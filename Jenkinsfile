@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         IMAGE_NAME = "sunil8179/bookmyshow"
+        SONARQUBE_SERVER = "SonarQube"
     }
 
     stages {
@@ -26,23 +27,17 @@ pipeline {
             }
         }
 
-        stage('Trivy FS Scan (Optional)') {
-            when {
-                expression { fileExists('package.json') }
-            }
+        stage('Trivy FS Scan') {
             steps {
                 sh 'trivy fs . || true'
             }
         }
 
-        stage('OWASP Dependency Check (Optional)') {
+        stage('SonarQube Analysis') {
             steps {
-                sh '''
-                mkdir -p dependency-check
-                wget https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip
-                unzip dependency-check-8.4.0-release.zip -d dependency-check
-                dependency-check/dependency-check/bin/dependency-check.sh --project BookMyShow --scan .
-                '''
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh 'mvn sonar:sonar'
+                }
             }
         }
 
@@ -62,18 +57,6 @@ pipeline {
                 sh '''
                 docker rm -f bookmyshow || true
                 docker run -d --name bookmyshow -p 3000:3000 sunil8179/bookmyshow:${BUILD_NUMBER}
-                '''
-            }
-        }
-
-        stage('Deploy to Kubernetes (EKS)') {
-            when {
-                expression { fileExists('k8s/deployment.yaml') }
-            }
-            steps {
-                sh '''
-                kubectl apply -f k8s/deployment.yaml
-                kubectl rollout status deployment/bookmyshow
                 '''
             }
         }
