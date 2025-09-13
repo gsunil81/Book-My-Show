@@ -24,7 +24,7 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         script {
-          def scannerHome = tool 'SonarScanner'  // ← Update this to match your configured tool name
+          def scannerHome = tool 'SonarScanner'
           withSonarQubeEnv('sonarqube') {
             sh "${scannerHome}/bin/sonar-scanner"
           }
@@ -79,4 +79,9 @@ pipeline {
       // Optional: Email on failure
       /*
       mail to: 'your.email@example.com',
-           subject: "Build Failed: ${env.J
+           subject: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+           body: "Check console output: ${env.BUILD_URL}"
+      */
+    }
+  }
+}
