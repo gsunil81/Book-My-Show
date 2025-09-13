@@ -27,12 +27,6 @@ pipeline {
             }
         }
 
-        stage('Trivy FS Scan') {
-            steps {
-                sh 'trivy fs . || true'
-            }
-        }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_SERVER}") {
