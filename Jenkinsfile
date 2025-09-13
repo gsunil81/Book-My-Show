@@ -16,8 +16,8 @@ pipeline {
     stage('Checkout Code') {
       steps {
         git credentialsId: 'github-creds',
-            url: 'https://github.com/sunil/bookmyshow.git',
-            branch: 'main'
+            url: 'https://github.com/gsunil81/Book-My-Show.git',
+            branch: 'feature/devops-pipeline'
       }
     }
 
@@ -61,6 +61,8 @@ pipeline {
       }
     }
 
+    // Optional: Email Notification (commented out until SMTP is configured)
+    /*
     stage('Email Notification') {
       steps {
         mail to: 'your.email@example.com',
@@ -68,13 +70,18 @@ pipeline {
              body: "Build ${currentBuild.currentResult}: ${env.BUILD_URL}"
       }
     }
+    */
   }
 
   post {
     failure {
+      echo "Build failed. Check logs for details."
+      // Optional: Email on failure
+      /*
       mail to: 'your.email@example.com',
            subject: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
            body: "Check console output: ${env.BUILD_URL}"
+      */
     }
   }
 }
