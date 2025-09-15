@@ -8,6 +8,6 @@ spec:
   selector:
     app: bms
   ports:
-    - protocol: TCP
-      port: 3000
-      targetPort: 3000
+  - protocol: TCP
+    port: 3000        # External port exposed to users
+    targetPort: 3000  # Internal port your app listens on
